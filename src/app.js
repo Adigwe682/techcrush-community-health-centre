@@ -4,6 +4,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/authRoutes");
+const visitRoutes = require("./routes/visitRoutes");
+const queueRoutes = require("./routes/queueRoutes");
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use(express.json());
 // ======================================================
 
 app.use("/api/auth", authRoutes);
+app.use("/api/visits", visitRoutes);
+app.use("/api/queue", queueRoutes);
 
 app.get("/", (req, res) => {
   res.json({
