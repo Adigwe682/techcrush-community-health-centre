@@ -4,7 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/authRoutes");
-
+const clinicalRoutes = require("./routes/clinicalRoutes");
 dotenv.config();
 
 const app = express();
@@ -22,7 +22,7 @@ app.use(express.json());
 // ======================================================
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/clinical",  clinicalRoutes);
 app.get("/", (req, res) => {
   res.json({
     message: "Community Health Centre API is running",
