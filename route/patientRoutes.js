@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import patientController from "../controller/controller.js";
+import patientController from "../controller/patientController.js";
 
 router.post("/patients", patientController.registerPatient);
 router.get("/patients", patientController.getAllPatients);

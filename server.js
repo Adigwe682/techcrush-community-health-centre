@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import patientRoute from "./route/PatientRoute.js";
+import patientRoute from "./route/patientRoutes.js";
 
 const app = express();
 const port = 3333;
