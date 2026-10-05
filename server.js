@@ -3,7 +3,7 @@ const appointmentRoutes = require("./appointmentRoutes");
 
 const app = express();
 
-const PORT = 6868;
+const PORT = 5000;
 
 //Middleware for reading JSON
 app.use(express.json());
