@@ -1,11 +1,11 @@
-import appointmentData from './appointmentData.js';
+const appointmentData = require('./appointmentData');
 
 //===============================
 // CREATE APPOINTMENT
 // POST /api/appointments
 //===============================
 
-export const createAppointment = (req, res) => {
+const createAppointment = (req, res) => {
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
         ? req.body
         : {};
@@ -58,7 +58,7 @@ export const createAppointment = (req, res) => {
     });
 };
 
-export const getAppointments = (req, res) => {
+const getAppointments = (req, res) => {
     return res.status(200).json({
         totalAppointments: appointmentData.length,
         appointments: appointmentData
@@ -70,7 +70,7 @@ export const getAppointments = (req, res) => {
 // GET /api/appointments/daily
 //===============================
 
-export const getDailyAppointments = (req, res) => {
+const getDailyAppointments = (req, res) => {
     const { date } = req.query;
 
     if (!date) {
@@ -91,7 +91,7 @@ export const getDailyAppointments = (req, res) => {
 //RESCHEDULE APPOINTMENT
 //PATCH /api/appointments/:id/reschedule
 //===============================
-export const rescheduleAppointment = (req, res) => {
+const rescheduleAppointment = (req, res) => {
     const id = Number(req.params.id);
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
         ? req.body
@@ -131,7 +131,7 @@ export const rescheduleAppointment = (req, res) => {
 //CANCEL APPOINTMENT
 //PATCH /api/appointments/:id/cancel
 //===============================
-export const cancelAppointment = (req, res) => {
+const cancelAppointment = (req, res) => {
 const id = Number(req.params.id);
 const appointment = appointmentData.find(
     (appointment) => appointment.id === id
@@ -157,7 +157,7 @@ return res.status(200).json({
 //CHECK-IN APPOINTMENT
 //PATCH /api/appointments/:id/checkin
 //===============================
-export const checkInAppointment = (req, res) => {
+const checkInAppointment = (req, res) => {
     const id = Number(req.params.id);
     const appointment = appointmentData.find(
         (appointment) => appointment.id === id
@@ -187,7 +187,7 @@ export const checkInAppointment = (req, res) => {
 //PATCH /api/appointments/:id/noshow
 //===============================
 
-export const markNoShow = (req, res) => {
+const markNoShow = (req, res) => {
     const id = Number(req.params.id);
 
     const appointment = appointmentData.find(
@@ -218,7 +218,7 @@ export const markNoShow = (req, res) => {
 //GET /api/appointments/status/:status
 //===============================
 
-export const getAppointmentStatus = (req, res) => {
+const getAppointmentStatus = (req, res) => {
     const status = req.params.status.toUpperCase();
     const appointments = appointmentData.filter(
         appointment => appointment.status === status
@@ -229,4 +229,15 @@ export const getAppointmentStatus = (req, res) => {
         totalAppointments: appointments.length,
         appointments
     });
+};
+
+module.exports = {
+    createAppointment,
+    getAppointments,
+    getDailyAppointments,
+    rescheduleAppointment,
+    cancelAppointment,
+    checkInAppointment,
+    markNoShow,
+    getAppointmentStatus
 };

@@ -1,5 +1,5 @@
-import express from "express";
-import appointmentRoutes from "./appointmentRoutes.js";
+const express = require("express");
+const appointmentRoutes = require("./appointmentRoutes");
 
 const app = express();
 

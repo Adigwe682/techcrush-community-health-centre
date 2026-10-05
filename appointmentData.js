@@ -28,4 +28,4 @@ const appointmentData = [
     }
 ];
 
-export default appointmentData;
+module.exports = appointmentData;
