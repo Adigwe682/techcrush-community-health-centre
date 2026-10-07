@@ -1,4 +1,4 @@
-const Visit = require("../models/Visit");
+const Visit = require("../models/Visit").default;
 
 // Create a new visit
 const createVisit = async (req, res) => {
@@ -71,7 +71,7 @@ const updateVisitStatus = async (req, res) => {
     const visit = await Visit.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!visit) {

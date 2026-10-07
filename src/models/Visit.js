@@ -4,11 +4,13 @@ const visitSchema = new mongoose.Schema(
   {
     patient: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
       required: true,
     },
 
     appointment: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Appointment",
       default: null,
     },
 
@@ -41,6 +43,7 @@ const visitSchema = new mongoose.Schema(
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },
