@@ -1,7 +1,7 @@
 const appointmentData = [
     {
         id: 1,
-        "patientName": "Judith Alpha",
+        "patient": "Judith Alpha",
         "doctorName": "Dr. Dika",
         "appointmentDate": "2026-10-10",
         "appointmentTime": "10:00 AM",
@@ -10,7 +10,7 @@ const appointmentData = [
     },
     {
         id: 2,
-        "patientName": "Gladys mike",
+        "patient": "Gladys mike",
         "doctorName": "Dr. Emenike",
         "appointmentDate": "2026-10-10",
         "appointmentTime": "10:00 AM",
@@ -19,7 +19,7 @@ const appointmentData = [
     },
     {
         id: 3,
-        "patientName": "Oshilaja Emmanuel",
+        "patient": "Oshilaja Emmanuel",
         "doctorName": "Dr. Stanley",
         "appointmentDate": "2026-10-11",
         "appointmentTime": "2:00 PM",

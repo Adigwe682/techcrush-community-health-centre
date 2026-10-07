@@ -8,7 +8,7 @@ const {
     checkInAppointment,
     markNoShow,
     getAppointmentStatus
-} = require("./appointmentcontroller");
+} = require("../controllers/appointmentController");
 
 const router = express.Router();
 

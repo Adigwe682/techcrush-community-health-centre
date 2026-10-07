@@ -4,7 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/authRoutes");
-const appointmentRoutes = require("../appointmentRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
 
 dotenv.config();
 

@@ -1,4 +1,5 @@
-const appointmentData = require('./appointmentData');
+const mongoose = require("mongoose");
+const appointmentData = require("../../appointmentData");
 
 //===============================
 // CREATE APPOINTMENT
@@ -11,7 +12,7 @@ const createAppointment = (req, res) => {
         : {};
 
     const requiredFields = [
-        'patientName',
+        'patient',
         'doctorName',
         'appointmentDate',
         'appointmentTime',
@@ -32,22 +33,26 @@ const createAppointment = (req, res) => {
     }
 
     const {
-        "patientName": patientName,
-        "doctorName": doctorName,
-        "appointmentDate": appointmentDate,
-        "appointmentTime": appointmentTime,
-        "reasonForVisit": reasonForVisit
+        patient,
+        doctorName,
+        appointmentDate,
+        appointmentTime,
+        reasonForVisit
     } = body;
+
+    if (!mongoose.Types.ObjectId.isValid(patient.trim())) {
+        return res.status(400).json({ error: 'patient must be a valid Patient ObjectId' });
+    }
 
     const newAppointment = {
         id: appointmentData.length + 1,
-        "patientName": patientName.trim(),
-        "doctorName": doctorName.trim(),
-        "appointmentDate": appointmentDate.trim(),
-        "appointmentTime": appointmentTime.trim(),
-        "reasonForVisit": reasonForVisit.trim(),
-        "status": 'SCHEDULED',
-        "createdAt": new Date().toISOString()
+        patient: patient.trim(),
+        doctorName: doctorName.trim(),
+        appointmentDate: appointmentDate.trim(),
+        appointmentTime: appointmentTime.trim(),
+        reasonForVisit: reasonForVisit.trim(),
+        status: 'SCHEDULED',
+        createdAt: new Date().toISOString()
     };
 
     appointmentData.push(newAppointment);
