@@ -1,4 +1,4 @@
-const Visit = require("../models/Visit").default;
+const Visit = require("../models/Visit");
 
 // Create a new visit
 const createVisit = async (req, res) => {
