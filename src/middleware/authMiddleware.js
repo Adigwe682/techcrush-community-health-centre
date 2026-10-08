@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
+const Permission = require("../models/Permission");
 // ======================================================
 // AUTHENTICATION MIDDLEWARE
 // ======================================================
