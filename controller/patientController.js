@@ -1,5 +1,5 @@
-import patientModel from '../model/patientModel.js';
-import patientHistoryModel from '../model/PatientHistoryModel.js';
+const patientModel = require('../model/patientModel.js');
+const patientHistoryModel = require('../model/PatientHistoryModel.js');
 
 const registerPatient = async (req, res) => {
     try {
@@ -109,9 +109,35 @@ const getPatientHistory = async (req, res) => {
     }
 };
 
+const updatePatientHistory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { medicalHistory, medications, allergies, mainComplaint, dateOfVisit } = req.body;
+        const updatePatientHistory = await patientHistoryModel.findByIdAndUpdate(id, { medicalHistory, medications, allergies, mainComplaint, dateOfVisit }, { new: true });
+        if (!updatePatientHistory) {
+            return res.status(404).json({ message: 'Patient history not found' });
+        }
+        return res.status(200).json({ message : 'Patient history updated successfully', data : updatePatientHistory})
+    }catch (error) {
+        return res.status(400).json({ message : 'Error updating patient history' })
+    }
+}
+
+const deletePatientHistory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletePatientHistory = await patientHistoryModel.findByIdAndDelete(id);
+        if (!deletePatientHistory) {
+            return res.status(404).json({ message: 'Patient history not found' });
+        }
+        return res.status(200).json({ message : 'Patient history deleted successfully', data : deletePatientHistory })
+    }catch (error) {
+        return res.status(400).json({ message : 'Error deleting patient history' })
+    }
+}
 
 
-export default {
+module.exports = {
     registerPatient,
     getAllPatients,
     getPatientProfile,
@@ -119,5 +145,7 @@ export default {
     updatePatient,
     deletePatient,
     getPatientHistory,
-    createPatientHistory
+    createPatientHistory,
+    updatePatientHistory,
+    deletePatientHistory
 };

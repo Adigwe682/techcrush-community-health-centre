@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const patientHistorySchema = new mongoose.Schema({
     patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
@@ -10,4 +10,4 @@ const patientHistorySchema = new mongoose.Schema({
 });
 
 const PatientHistory = mongoose.model('PatientHistory', patientHistorySchema);
-export default PatientHistory;
+module.exports = PatientHistory;
