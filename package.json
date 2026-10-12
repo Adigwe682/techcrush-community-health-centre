@@ -5,11 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "seed": "node src/config/seedRBAC.js",
-    "test": "jest --timeout=10000",
-    "test:watch": "jest --watch --timeout=10000",
-    "test:coverage": "jest --coverage --timeout=10000"
+    "start:appointments": "node server.js",
+    "dev": "nodemon src/app.js"
   },
   "keywords": [
     "health",
