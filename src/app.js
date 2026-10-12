@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const visitRoutes = require("./routes/visitRoutes");
 const queueRoutes = require("./routes/queueRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
 
 dotenv.config();
 
@@ -18,7 +19,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 // ======================================================
 // ROUTES
 // ======================================================
@@ -26,6 +26,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/visits", visitRoutes);
 app.use("/api/queue", queueRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 app.get("/", (req, res) => {
   res.json({
@@ -33,10 +34,10 @@ app.get("/", (req, res) => {
   });
 });
 
-
 // ======================================================
 // MONGODB CONNECTION
 // ======================================================
+
 
 const PORT = process.env.PORT || 5000;
 
