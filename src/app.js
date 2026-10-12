@@ -4,6 +4,13 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/authRoutes");
+const visitRoutes = require("./routes/visitRoutes");
+const queueRoutes = require("./routes/queueRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
+const clinicalRoutes = require("./routes/clinicalRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+const billRoutes = require("./routes/billRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 dotenv.config();
 
@@ -16,15 +23,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Activity logging middleware (logs all authenticated requests)
-const activityLogMiddleware = require("./middleware/activityLogMiddleware");
-app.use(activityLogMiddleware);
+// ======================================================
+// ROUTES
+// ======================================================
 
-// Health check controller
-const { healthCheck } = require("./controllers/healthController");
-
-// Health check endpoint (no auth required)
-app.get("/api/health", healthCheck);
+app.use("/api/auth", authRoutes);
+app.use("/api/visits", visitRoutes);
+app.use("/api/queue", queueRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/clinical", clinicalRoutes);
+app.use("/api", patientRoutes);
+app.use("/api/bills", billRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // API documentation endpoint
 app.get("/api/docs", (req, res) => {
@@ -84,11 +94,6 @@ app.get("/api/docs", (req, res) => {
     },
   });
 });
-
-
-// Authentication routes (login, logout, staff management)
-app.use("/api/auth", authRoutes);
-
 
 // ======================================================
 // Audit log routes (Admin only)
