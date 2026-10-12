@@ -38,13 +38,13 @@ export const createBill = asynchandler(async (req, res) => {
 
 // get all bills
 export const getAllBills = asynchandler(async (req, res) => {
-  const bills = await Bill.find()//.populate("patientID visitID");
+  const bills = await Bill.find().populate("patientID visitID");
   res.status(200).json({message: "Bills retrieved successfully", documents: bills});
 });
 
 // get single bill by id
 export const getBillById = asynchandler(async (req, res) => {
-  const bill = await Bill.findById(req.params.id)//.populate("patientID visitID");
+  const bill = await Bill.findById(req.params.id).populate("patientID visitID");
 
   if (!bill) {
     return res.status(404).json({
@@ -59,7 +59,7 @@ export const getBillById = asynchandler(async (req, res) => {
 export const getBills = asynchandler(async (req, res) => {
   const {
     patientID,
-    createdAt,
+    visitID,
     totalAmount,
     amountPaid,
     status
@@ -73,7 +73,7 @@ export const getBills = asynchandler(async (req, res) => {
   if (amountPaid) filter.amountPaid = Number(amountPaid);
   if (status) filter.status = status;
 
-  const bills = await Bill.find(filter)//.populate("patientID visitID");
+  const bills = await Bill.find(filter).populate("patientID visitID");
 
   if (bills.length === 0) {
     return res.status(404).json({

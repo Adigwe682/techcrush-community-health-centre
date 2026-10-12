@@ -41,10 +41,10 @@ export const initializePayment = asynchandler(async (req, res) => {
   // Create a unique reference for this payment
   const reference = `PAY-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
 
-  /*// Get patient email
-  const patient = await bill.populate("patientID");*/
+  // Get patient email
+  const patient = await bill.populate("patientID")
 
-  const email = 'Chinaecheremudobuzor@gmail.com';//patient.patientID.email;
+  const email = patient.patientID.email;
 
   if (!email) {
     return res.status(400).json({
@@ -72,7 +72,7 @@ export const initializePayment = asynchandler(async (req, res) => {
 
         metadata: {
           billId: bill._id.toString(),
-          //patientId: patient.patientID.toString()
+          patientId: patient.patientID.toString()
         }
       })
     }
@@ -263,17 +263,13 @@ export const paystackWebhook = asynchandler(async (req, res) => {
   console.log("STEP 7 - Getting Bill and Patient IDs");
 
 
- /* console.log("FULL TRANSACTION:");
-  console.log(transaction);
-
-  console.log("METADATA:");
-  console.log(transaction.metadata);*/
+ 
 
   const billID = transaction.metadata?.billId;
- // const patientID = transaction.metadata?.patientID;
+  const patientID = transaction.metadata?.patientID;
 
 
-  if (!billID) {                                         ////|| !patientID
+  if (!billID ||!patientID) {                                        
     return res.sendStatus(400);
   }
 
@@ -413,8 +409,8 @@ Please check the hospital payment records.
 export const getAllPayments = asynchandler(async (req, res) => {
 
   const payments = await Payment.find()
-    //.populate("patient")
-    //.populate("bill");
+    .populate("patientID")
+    .populate("billID");
 
   return res.status(200).json({
     message: "Payments retrieved successfully",
