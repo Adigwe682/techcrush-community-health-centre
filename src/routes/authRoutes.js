@@ -1,16 +1,16 @@
-const express = require("express");
+import express from "express";
 
-const {
+import {
   login,
   createStaff,
   updateAccountStatus,
   logout,
-} = require("../controllers/authController");
+} from "../controllers/authController.js";
 
-const {
+import {
   protect,
   authorizePermission,
-} = require("../middleware/authMiddleware");
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -58,4 +58,4 @@ router.post(
 );
 
 
-module.exports = router;
+export default router;

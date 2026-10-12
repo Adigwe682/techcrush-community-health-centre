@@ -1,9 +1,9 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const mongoose = require("mongoose");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import mongoose from "mongoose";
 
-const authRoutes = require("./routes/authRoutes");
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Community Health Centre API is running",
+    message: "FluxPay API is running",
   });
 });
 

@@ -1,13 +1,13 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const Role = require("../models/Role");
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "./userModel.js"; // Adjust path if your User/userModel file is located elsewhere
+import Role from "../models/Role.js"; // Adjust path if needed
 
 // ======================================================
 // LOGIN
 // ======================================================
 
-const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -84,7 +84,7 @@ const login = async (req, res) => {
 // CREATE STAFF ACCOUNT
 // ======================================================
 
-const createStaff = async (req, res) => {
+export const createStaff = async (req, res) => {
   try {
     const {
       firstName,
@@ -154,7 +154,7 @@ const createStaff = async (req, res) => {
 // ACTIVATE / DEACTIVATE STAFF ACCOUNT
 // ======================================================
 
-const updateAccountStatus = async (req, res) => {
+export const updateAccountStatus = async (req, res) => {
   try {
     const { userId } = req.params;
     const { isActive } = req.body;
@@ -203,20 +203,8 @@ const updateAccountStatus = async (req, res) => {
 // LOGOUT
 // ======================================================
 
-const logout = async (req, res) => {
+export const logout = async (req, res) => {
   res.status(200).json({
     message: "Logout successful. Please remove the authentication token.",
   });
-};
-
-
-// ======================================================
-// EXPORT CONTROLLERS
-// ======================================================
-
-module.exports = {
-  login,
-  createStaff,
-  updateAccountStatus,
-  logout,
 };

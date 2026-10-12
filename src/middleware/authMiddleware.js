@@ -1,12 +1,13 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const Permission = require("../models/Permission");
+import jwt from "jsonwebtoken";
+import User from "./userModel.js"; // Adjust path if your userModel.js is elsewhere
+// import Permission from "../models/Permission.js"; // Uncomment if you use the Permission model directly
+
 // ======================================================
 // AUTHENTICATION MIDDLEWARE
 // ======================================================
 // Checks whether the user has a valid JWT token.
 
-const protect = (req, res, next) => {
+export const protect = (req, res, next) => {
   try {
     // Get Authorization header
     const authHeader = req.headers.authorization;
@@ -47,7 +48,7 @@ const protect = (req, res, next) => {
 // authorize("Admin")
 // authorize("Doctor", "Admin")
 
-const authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
     // Make sure user is authenticated
     if (!req.user) {
@@ -75,7 +76,7 @@ const authorize = (...roles) => {
 // authorizePermission("staff:create")
 // authorizePermission("patient:create")
 
-const authorizePermission = (permissionName) => {
+export const authorizePermission = (permissionName) => {
   return async (req, res, next) => {
     try {
       // Make sure user is authenticated
@@ -137,15 +138,4 @@ const authorizePermission = (permissionName) => {
       });
     }
   };
-};
-
-
-// ======================================================
-// EXPORT MIDDLEWARE
-// ======================================================
-
-module.exports = {
-  protect,
-  authorize,
-  authorizePermission,
 };
