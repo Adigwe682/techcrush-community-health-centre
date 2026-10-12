@@ -1,15 +1,23 @@
 {
   "name": "community-health-centre-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Community Health Centre API with authentication, RBAC, audit logging, and notifications",
+  "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "start:appointments": "node server.js",
     "dev": "nodemon src/app.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "health",
+    "clinic",
+    "api",
+    "authentication",
+    "rbac",
+    "audit-log",
+    "notifications"
+  ],
+  "author": "Community Health Centre",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -21,6 +29,9 @@
     "mongoose": "^9.10.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^11.3.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.0.0"
   }
 }

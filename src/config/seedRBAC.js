@@ -92,6 +92,14 @@ const permissions = [
     name: "reports:view",
     description: "View reports",
   },
+  {
+    name: "audit:manage",
+    description: "Create, view, and delete audit logs",
+  },
+  {
+    name: "notification:read",
+    description: "View notifications",
+  },
 ];
 
 
