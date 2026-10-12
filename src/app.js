@@ -3,10 +3,12 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
+
 const authRoutes = require("./routes/authRoutes");
 const visitRoutes = require("./routes/visitRoutes");
 const queueRoutes = require("./routes/queueRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
+const clinicalRoutes = require("./routes/clinicalRoutes");
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/visits", visitRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/clinical", clinicalRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({
