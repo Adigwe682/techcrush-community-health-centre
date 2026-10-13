@@ -1,6 +1,6 @@
-const nurseModel = require('../models/nurseModel');
-const visitModel = require('../models/visitModel');
-const patientModel = require('../models/patientModel');
+const nurseModel = require('../models/nurseModels');
+const visitModel = require('../models/Visit');
+const patientModel = require('../models/Patient');
 const patientHistoryModel = require('../models/PatientHistory');
 
 const gettriageQueue = async (req, res) => {
@@ -52,14 +52,14 @@ const saveTriageDraft = async (req, res) => {
       if (observations !== undefined) triageRecord.observations = observations;
       if (nursingNotes !== undefined) triageRecord.nursingNotes = nursingNotes;
       if (triage !== undefined) triageRecord.triage = triage;
-      triageRecord.status = "Draft";
+      triageRecord.status = "in-progress";
 
       await triageRecord.save();
     } else {
         // Create new draft triage record
       triageRecord = await nurseModel.create({nurse: nurseId, patient, visit, vitals, observations, nursingNotes,
         triage: triage || "Green",
-        status: "Draft",
+        status: "in-progress",
         completedAt: null,
       });
     }
@@ -108,11 +108,11 @@ const completeAndSendPatientToDoctor = async (req, res) => {
             triageRecord.observations = observations;
             triageRecord.nursingNotes = nursingNotes;
             triageRecord.triage = triage;
-            triageRecord.status = "Completed";
+            triageRecord.status = "completed";
             triageRecord.completedAt = new Date();
             await triageRecord.save();
         } else {
-            triageRecord = await nurseModel.create({nurse: nurseId,patient,visit,vitals,observations,nursingNotes,triage,status: "Completed",completedAt: new Date(),});
+            triageRecord = await nurseModel.create({nurse: nurseId,patient,visit,vitals,observations,nursingNotes,triage,status: "completed",completedAt: new Date(),});
         }
 
         await visitModel.findByIdAndUpdate(visit, { status: "ready-for-doctor" });

@@ -1,5 +1,6 @@
 const express = require("express");
-const appointmentRoutes = require("./appointmentRoutes");
+const appointmentRoutes = require("./src/routes/appointmentRoutes");
+const nurseRoutes = require("./src/routes/nurseRoutes");
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 //Appointment Routes
 app.use("/api/appointments", appointmentRoutes);
+
 
 // Basic route for testing
 app.get("/appointments", (req, res) => {

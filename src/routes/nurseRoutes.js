@@ -1,13 +1,14 @@
 const express = require("express");
-const useRoute = express.Router();
+const router = express.Router();
 const { gettriageQueue, getfullpatientHistory, saveTriageDraft, completeAndSendPatientToDoctor } = require("../controllers/nurseController");
-const { authenticateUser } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware"); //I wrote the code myself byt the AI assist thing said I should add this even though I'm not sure what it is
+
+router.use(protect); // Applies auth to all routes below
+
+router.get("/triage-queue", gettriageQueue);
+router.get("/patient-history/:patientId", getfullpatientHistory);
+router.post("/save-triage-draft", saveTriageDraft);   
+router.post("/complete-triage", completeAndSendPatientToDoctor);
 
 
-useRoute.get("/triage-queue", authenticateUser, gettriageQueue);
-useRoute.get("/patient-history/:patientId", authenticateUser, getfullpatientHistory);
-useRoute.post("/save-triage-draft", authenticateUser, saveTriageDraft);   
-useRoute.post("/complete-triage", authenticateUser, completeAndSendPatientToDoctor);
-
-
-module.exports = useRoute
+module.exports = router;
