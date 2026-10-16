@@ -1,243 +1,59 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Role = require("../models/Role");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-// ======================================================
-// LOGIN
-// ======================================================
-
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check required fields
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
-    }
-
-    // Find user and load their role
-    const user = await User.findOne({ email }).populate("role");
-
-    // Check if user exists
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    // Check if account is active
-    if (!user.isActive) {
-      return res.status(403).json({
-        message: "Account is inactive",
-      });
-    }
-
-    // Compare entered password with hashed password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    // Create JWT token
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        role: user.role.name,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
-
-    // Send successful response
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role.name,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
-  }
+// Helper function to generate JWT Token
+const generateToken = (userId, roleName) => {
+  return jwt.sign(
+    { id: userId, role: roleName },
+    process.env.JWT_SECRET || "default_secret",
+    { expiresIn: "7d" }
+  );
 };
 
-
-// ======================================================
-// CREATE STAFF ACCOUNT
-// ======================================================
-
-const createStaff = async (req, res) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-    } = req.body;
-
-    // Check required fields
-    if (!firstName || !lastName || !email || !password || !role) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
-
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res.status(409).json({
-        message: "A user with this email already exists",
-      });
-    }
-
-    // Check if selected role exists
-    const selectedRole = await Role.findById(role);
-
-    if (!selectedRole) {
-      return res.status(404).json({
-        message: "Role not found",
-      });
-    }
-
-    // Create staff account
-    // Password will automatically be hashed
-    // by the User model before saving
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-    });
-
-    res.status(201).json({
-      message: "Staff account created successfully",
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
-  }
-};
-
-
-// ======================================================
-// ACTIVATE / DEACTIVATE STAFF ACCOUNT
-// ======================================================
-
-const updateAccountStatus = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { isActive } = req.body;
-
-    // Make sure isActive is actually true or false
-    if (typeof isActive !== "boolean") {
-      return res.status(400).json({
-        message: "isActive must be true or false",
-      });
-    }
-
-    // Find user
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    // Update account status
-    user.isActive = isActive;
-
-    await user.save();
-
-    res.status(200).json({
-      message: isActive
-        ? "Account activated successfully"
-        : "Account deactivated successfully",
-
-      user: {
-        id: user._id,
-        isActive: user.isActive,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
-  }
-};
-
-
-// ======================================================
-// PUBLIC REGISTRATION (WITH ROLE SELECTION)
-// ======================================================
-
-const register = async (req, res) => {
+/**
+ * @desc    Register a new user (Supports optional role selection)
+ * @route   POST /api/auth/register
+ * @access  Public
+ */
+exports.register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
 
-    // Check required fields
+    // 1. Check if required fields are provided
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
-        message: "First name, last name, email, and password are required",
+        message: "Please provide firstName, lastName, email, and password.",
       });
     }
 
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
+    // 2. Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(409).json({
-        message: "A user with this email already exists",
-      });
+      return res.status(400).json({ message: "User with this email already exists." });
     }
 
+    // 3. Resolve User Role (Case-Insensitive Match)
     let userRole;
 
     if (role) {
-      // Look up role by Name (e.g. "Doctor", "Admin", "Nurse") OR by ID
       const isObjectId = mongoose.Types.ObjectId.isValid(role);
       userRole = await Role.findOne({
-        $or: [{ name: role }, ...(isObjectId ? [{ _id: role }] : [])],
+        $or: [
+          { name: { $regex: new RegExp(`^${role.trim()}$`, "i") } }, // Case-insensitive match
+          ...(isObjectId ? [{ _id: role }] : []),
+        ],
       });
 
       if (!userRole) {
-        return res.status(404).json({ message: `Role '${role}' not found` });
+        return res.status(404).json({ message: `Role '${role}' not found in database.` });
       }
     } else {
-      // Fallback to default "patient" role if no role was provided
-      userRole = await Role.findOne({ name: "patient" });
+      // Fallback to default "patient" role (case-insensitive search or auto-creation)
+      userRole = await Role.findOne({ name: { $regex: /^patient$/i } });
+
       if (!userRole) {
         userRole = await Role.create({
           name: "patient",
@@ -247,54 +63,109 @@ const register = async (req, res) => {
       }
     }
 
-    // Create user account
-    const user = await User.create({
+    // 4. Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 5. Create and save new user
+    const newUser = await User.create({
       firstName,
       lastName,
-      email,
-      password,
+      email: email.toLowerCase(),
+      password: hashedPassword,
       role: userRole._id,
     });
 
-    res.status(201).json({
-      message: "Registration successful",
+    // 6. Generate JWT Token
+    const token = generateToken(newUser._id, userRole.name);
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      token,
       user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
         role: userRole.name,
-        isActive: user.isActive,
       },
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
+    console.error("Error in registration:", error);
+    return res.status(500).json({
+      message: "Server error during registration",
       error: error.message,
     });
   }
 };
 
+/**
+ * @desc    Authenticate user & get token
+ * @route   POST /api/auth/login
+ * @access  Public
+ */
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-// ======================================================
-// LOGOUT
-// ======================================================
+    // Validate inputs
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please provide email and password." });
+    }
 
-const logout = async (req, res) => {
-  res.status(200).json({
-    message: "Logout successful. Please remove the authentication token.",
-  });
+    // Find user by email and populate role details
+    const user = await User.findOne({ email: email.toLowerCase() }).populate("role");
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    const roleName = user.role ? user.role.name : "patient";
+    const token = generateToken(user._id, roleName);
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: roleName,
+      },
+    });
+  } catch (error) {
+    console.error("Error in login:", error);
+    return res.status(500).json({
+      message: "Server error during login",
+      error: error.message,
+    });
+  }
 };
 
+/**
+ * @desc    Get current user profile
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password").populate("role");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-// ======================================================
-// EXPORT CONTROLLERS
-// ======================================================
-
-module.exports = {
-  login,
-  register,
-  createStaff,
-  updateAccountStatus,
-  logout,
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return res.status(500).json({
+      message: "Server error fetching user profile",
+      error: error.message,
+    });
+  }
 };
