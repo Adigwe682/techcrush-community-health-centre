@@ -40,7 +40,7 @@ app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Community Health Centre API is running",
+    message: "Techcrush group project is running",
   });
 });
 
