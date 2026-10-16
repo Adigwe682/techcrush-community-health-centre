@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
@@ -197,18 +198,20 @@ const updateAccountStatus = async (req, res) => {
     });
   }
 };
+
+
 // ======================================================
-// PUBLIC PATIENT REGISTRATION
+// PUBLIC REGISTRATION (WITH ROLE SELECTION)
 // ======================================================
 
 const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
     // Check required fields
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "First name, last name, email, and password are required",
       });
     }
 
@@ -220,24 +223,37 @@ const register = async (req, res) => {
       });
     }
 
-    // Find or create the default "patient" role
-    let patientRole = await Role.findOne({ name: "patient" });
-    if (!patientRole) {
-      patientRole = await Role.create({
-        name: "patient",
-        description: "Standard Patient Account",
-        permissions: []
+    let userRole;
+
+    if (role) {
+      // Look up role by Name (e.g. "Doctor", "Admin", "Nurse") OR by ID
+      const isObjectId = mongoose.Types.ObjectId.isValid(role);
+      userRole = await Role.findOne({
+        $or: [{ name: role }, ...(isObjectId ? [{ _id: role }] : [])],
       });
+
+      if (!userRole) {
+        return res.status(404).json({ message: `Role '${role}' not found` });
+      }
+    } else {
+      // Fallback to default "patient" role if no role was provided
+      userRole = await Role.findOne({ name: "patient" });
+      if (!userRole) {
+        userRole = await Role.create({
+          name: "patient",
+          description: "Standard Patient Account",
+          permissions: [],
+        });
+      }
     }
 
-    // Create user account 
-    // (Note: pass plain password here; userSchema pre-save hook handles hashing)
+    // Create user account
     const user = await User.create({
       firstName,
       lastName,
       email,
       password,
-      role: patientRole._id,
+      role: userRole._id,
     });
 
     res.status(201).json({
@@ -247,7 +263,7 @@ const register = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: patientRole.name,
+        role: userRole.name,
         isActive: user.isActive,
       },
     });
@@ -258,6 +274,8 @@ const register = async (req, res) => {
     });
   }
 };
+
+
 // ======================================================
 // LOGOUT
 // ======================================================
