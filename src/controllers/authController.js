@@ -19,11 +19,20 @@ const generateToken = (userId, roleName) => {
  */
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { name, firstName, lastName, email, password, role } = req.body;
 
-    if (!firstName || !lastName || !email || !password) {
+    let resolvedFirstName = firstName;
+    let resolvedLastName = lastName;
+
+    if (name && (!firstName || !lastName)) {
+      const parts = name.trim().split(/\s+/);
+      resolvedFirstName = parts[0];
+      resolvedLastName = parts.slice(1).join(" ") || "Staff";
+    }
+
+    if (!resolvedFirstName || !resolvedLastName || !email || !password) {
       return res.status(400).json({
-        message: "Please provide firstName, lastName, email, and password.",
+        message: "Please provide name (or firstName and lastName), email, and password.",
       });
     }
 
@@ -60,8 +69,8 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = await User.create({
-      firstName,
-      lastName,
+      firstName: resolvedFirstName,
+      lastName: resolvedLastName,
       email: email.toLowerCase(),
       password: hashedPassword,
       role: userRole._id,
