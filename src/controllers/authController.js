@@ -101,7 +101,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Please provide email and password." });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).populate("role");
+    // Explicitly select password since it's hidden by default in Mongoose schemas
+    const user = await User.findOne({ email: email.toLowerCase() })
+      .select("+password")
+      .populate("role");
+
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password." });
     }
@@ -239,7 +243,6 @@ exports.updateAccountStatus = async (req, res) => {
  */
 exports.logout = async (req, res) => {
   try {
-    // For JWT-based auth, logout is typically handled client-side by deleting the token.
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Error during logout:", error);

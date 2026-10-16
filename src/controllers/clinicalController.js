@@ -16,13 +16,19 @@ const createClinicalEncounter = async (req, res) => {
       followUp,
     } = req.body;
 
+    // FIX: Fallback to support both req.user.id (from JWT) and req.user.userId
+    const doctorId = req.user.id || req.user.userId;
+
+    if (!doctorId) {
+      return res.status(401).json({ 
+        message: "Unauthorized: Doctor ID missing from authentication token" 
+      });
+    }
+
     const encounter = await ClinicalEncounter.create({
       patient,
       visit,
-
-      // Get the logged-in doctor's ID from the JWT
-      doctor: req.user.userId,
-
+      doctor: doctorId,
       chiefComplaint,
       clinicalNotes,
       diagnosis,
@@ -49,7 +55,10 @@ const createClinicalEncounter = async (req, res) => {
 
 const getClinicalEncounter = async (req, res) => {
   try {
-    const encounter = await ClinicalEncounter.findById(req.params.id);
+    const encounter = await ClinicalEncounter.findById(req.params.id)
+      .populate("doctor", "-password")
+      .populate("patient")
+      .populate("visit");
 
     if (!encounter) {
       return res.status(404).json({
@@ -159,8 +168,7 @@ const addPrescription = async (req, res) => {
 
     if (!medication || !dosage || !frequency || !duration) {
       return res.status(400).json({
-        message:
-          "Medication, dosage, frequency and duration are required",
+        message: "Medication, dosage, frequency and duration are required",
       });
     }
 
