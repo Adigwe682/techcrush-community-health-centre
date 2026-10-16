@@ -51,8 +51,13 @@ exports.register = async (req, res) => {
         ],
       });
 
+      // Automatically create the role if it doesn't exist yet to prevent registration blocks
       if (!userRole) {
-        return res.status(404).json({ message: `Role '${role}' not found in database.` });
+        userRole = await Role.create({
+          name: role.toLowerCase().trim(),
+          description: `${role} Account`,
+          permissions: [],
+        });
       }
     } else {
       userRole = await Role.findOne({ name: { $regex: /^patient$/i } });
@@ -99,7 +104,7 @@ exports.register = async (req, res) => {
 };
 
 /**
- * @desc    Authenticate user & get token
+ * @desc    Authenticate user & token
  * @route   POST /api/auth/login
  */
 exports.login = async (req, res) => {
@@ -110,7 +115,6 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Please provide email and password." });
     }
 
-    // Explicitly select password since it's hidden by default in Mongoose schemas
     const user = await User.findOne({ email: email.toLowerCase() })
       .select("+password")
       .populate("role");
@@ -167,7 +171,7 @@ exports.createStaff = async (req, res) => {
     }
 
     const isObjectId = mongoose.Types.ObjectId.isValid(role);
-    const userRole = await Role.findOne({
+    let userRole = await Role.findOne({
       $or: [
         { name: { $regex: new RegExp(`^${role.trim()}$`, "i") } },
         ...(isObjectId ? [{ _id: role }] : []),
@@ -175,7 +179,11 @@ exports.createStaff = async (req, res) => {
     });
 
     if (!userRole) {
-      return res.status(404).json({ message: `Role '${role}' not found.` });
+      userRole = await Role.create({
+        name: role.toLowerCase().trim(),
+        description: `${role} Account`,
+        permissions: [],
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
