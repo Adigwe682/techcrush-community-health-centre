@@ -14,30 +14,25 @@ const generateToken = (userId, roleName) => {
 };
 
 /**
- * @desc    Register a new user (Supports optional role selection)
+ * @desc    Register a new user (Public)
  * @route   POST /api/auth/register
- * @access  Public
  */
 exports.register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
 
-    // 1. Check if required fields are provided
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
         message: "Please provide firstName, lastName, email, and password.",
       });
     }
 
-    // 2. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: "User with this email already exists." });
     }
 
-    // 3. Resolve User Role (Case-Insensitive Match)
     let userRole;
-
     if (role) {
       const isObjectId = mongoose.Types.ObjectId.isValid(role);
       userRole = await Role.findOne({
@@ -51,9 +46,7 @@ exports.register = async (req, res) => {
         return res.status(404).json({ message: `Role '${role}' not found in database.` });
       }
     } else {
-      // Fallback to default "patient" role (case-insensitive search or auto-creation)
       userRole = await Role.findOne({ name: { $regex: /^patient$/i } });
-
       if (!userRole) {
         userRole = await Role.create({
           name: "patient",
@@ -63,11 +56,9 @@ exports.register = async (req, res) => {
       }
     }
 
-    // 4. Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 5. Create and save new user
     const newUser = await User.create({
       firstName,
       lastName,
@@ -76,7 +67,6 @@ exports.register = async (req, res) => {
       role: userRole._id,
     });
 
-    // 6. Generate JWT Token
     const token = generateToken(newUser._id, userRole.name);
 
     return res.status(201).json({
@@ -102,24 +92,20 @@ exports.register = async (req, res) => {
 /**
  * @desc    Authenticate user & get token
  * @route   POST /api/auth/login
- * @access  Public
  */
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate inputs
     if (!email || !password) {
       return res.status(400).json({ message: "Please provide email and password." });
     }
 
-    // Find user by email and populate role details
     const user = await User.findOne({ email: email.toLowerCase() }).populate("role");
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password." });
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password." });
@@ -149,22 +135,116 @@ exports.login = async (req, res) => {
 };
 
 /**
- * @desc    Get current user profile
- * @route   GET /api/auth/me
- * @access  Private
+ * @desc    Create a staff member (Protected + permission check)
+ * @route   POST /api/auth/staff
  */
-exports.getMe = async (req, res) => {
+exports.createStaff = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password").populate("role");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const { firstName, lastName, email, password, role } = req.body;
+
+    if (!firstName || !lastName || !email || !password || !role) {
+      return res.status(400).json({
+        message: "Please provide firstName, lastName, email, password, and role.",
+      });
     }
 
-    return res.status(200).json({ user });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists." });
+    }
+
+    const isObjectId = mongoose.Types.ObjectId.isValid(role);
+    const userRole = await Role.findOne({
+      $or: [
+        { name: { $regex: new RegExp(`^${role.trim()}$`, "i") } },
+        ...(isObjectId ? [{ _id: role }] : []),
+      ],
+    });
+
+    if (!userRole) {
+      return res.status(404).json({ message: `Role '${role}' not found.` });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newStaff = await User.create({
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: userRole._id,
+    });
+
+    return res.status(201).json({
+      message: "Staff member created successfully",
+      staff: {
+        id: newStaff._id,
+        firstName: newStaff.firstName,
+        lastName: newStaff.lastName,
+        email: newStaff.email,
+        role: userRole.name,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    console.error("Error creating staff:", error);
     return res.status(500).json({
-      message: "Server error fetching user profile",
+      message: "Server error creating staff",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Activate or Deactivate staff account status
+ * @route   PATCH /api/auth/staff/:userId/status
+ */
+exports.updateAccountStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({ message: "Please provide a boolean value for isActive." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.isActive = isActive;
+    await user.save();
+
+    return res.status(200).json({
+      message: `User account status updated successfully to ${isActive ? "Active" : "Inactive"}`,
+      user: {
+        id: user._id,
+        email: user.email,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating account status:", error);
+    return res.status(500).json({
+      message: "Server error updating account status",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Logout user
+ * @route   POST /api/auth/logout
+ */
+exports.logout = async (req, res) => {
+  try {
+    // For JWT-based auth, logout is typically handled client-side by deleting the token.
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return res.status(500).json({
+      message: "Server error during logout",
       error: error.message,
     });
   }
