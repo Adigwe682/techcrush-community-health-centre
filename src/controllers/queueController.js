@@ -1,5 +1,5 @@
-const Queue = require("../models/Queue").default;
-const Visit = require("../models/Visit").default;
+const Queue = require("../models/Queue");
+const Visit = require("../models/Visit");
 
 // Add a visit to the queue
 const addToQueue = async (req, res) => {

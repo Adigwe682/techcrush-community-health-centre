@@ -41,11 +41,8 @@ const protect = (req, res, next) => {
 
 
 // ======================================================
-// ROLE-BASED AUTHORIZATION
+// ROLE-BASED AUTHORIZATION (Case-Insensitive)
 // ======================================================
-// Example:
-// authorize("Admin")
-// authorize("Doctor", "Admin")
 
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -56,8 +53,12 @@ const authorize = (...roles) => {
       });
     }
 
+    // Convert both allowed roles and user role to lowercase for comparison
+    const allowedRoles = roles.map((role) => role.toLowerCase());
+    const userRole = req.user.role ? req.user.role.toLowerCase() : "";
+
     // Check user's role
-    if (!roles.includes(req.user.role)) {
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
         message: "You do not have permission to perform this action",
       });

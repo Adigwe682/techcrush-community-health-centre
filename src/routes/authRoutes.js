@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
   login,
+  register,
   createStaff,
   updateAccountStatus,
   logout,
@@ -19,6 +20,12 @@ const router = express.Router();
 // ======================================================
 
 router.post("/login", login);
+
+
+// ======================================================
+// PUBLIC REGISTRATION
+// ======================================================
+router.post("/register", register);
 
 
 // ======================================================

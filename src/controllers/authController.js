@@ -197,8 +197,67 @@ const updateAccountStatus = async (req, res) => {
     });
   }
 };
+// ======================================================
+// PUBLIC PATIENT REGISTRATION
+// ======================================================
 
+const register = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
 
+    // Check required fields
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        message: "A user with this email already exists",
+      });
+    }
+
+    // Find or create the default "patient" role
+    let patientRole = await Role.findOne({ name: "patient" });
+    if (!patientRole) {
+      patientRole = await Role.create({
+        name: "patient",
+        description: "Standard Patient Account",
+        permissions: []
+      });
+    }
+
+    // Create user account 
+    // (Note: pass plain password here; userSchema pre-save hook handles hashing)
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      role: patientRole._id,
+    });
+
+    res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: patientRole.name,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 // ======================================================
 // LOGOUT
 // ======================================================
@@ -216,6 +275,7 @@ const logout = async (req, res) => {
 
 module.exports = {
   login,
+  register,
   createStaff,
   updateAccountStatus,
   logout,
