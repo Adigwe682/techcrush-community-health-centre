@@ -70,14 +70,12 @@ exports.register = async (req, res) => {
       }
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // Password hashing handled entirely by User.js pre-save hook (removed double-hashing)
     const newUser = await User.create({
       firstName: resolvedFirstName,
       lastName: resolvedLastName,
       email: email.toLowerCase(),
-      password: hashedPassword,
+      password: password,
       role: userRole._id,
     });
 
@@ -123,6 +121,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password." });
     }
 
+    // Utilize model method or standard bcrypt compare
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password." });
@@ -186,14 +185,12 @@ exports.createStaff = async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // Password hashing handled entirely by User.js pre-save hook
     const newStaff = await User.create({
       firstName,
       lastName,
       email: email.toLowerCase(),
-      password: hashedPassword,
+      password: password,
       role: userRole._id,
     });
 
